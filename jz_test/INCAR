@@ -1,0 +1,53 @@
+System = Mn3NiN
+
+ISTART = 0                ! continue job using wavefunctions from previous WAVECAR (if it is available)
+NELMDL = -5               ! number of non-selfconsistent steps after starting with random orbitals (INIWAV = 1), take -12 with IALGO=48
+NELM = 70                 ! limit the number of electronic steps in self-cons.
+NBANDS = 56               ! number of bands, usually set automatically, sensitive when switching from non-magnetic to non-collinear
+!ICHARG = 0                ! charge density calculated form initial orbitals - compatible with continuation of non-collinear job with rotated moments (default when ISTART=1 and WAVECAR available)
+!ICHARG = 1                ! continue job using charge density from previous CHGCAR, if ICHARG > 10 no electronic self-cons!
+ICHARG = 2                ! superposition of atomic charge densities (default when ISTART=0 or (ISTART=1 and WAVECAR not available))
+PREC = Accurate           ! sets ENMAX to be the maximum of all elements in POTCAR
+EDIFF  = 1E-7             ! convergence energy criterion - very high accuracy is 10^-7 eV
+ISMEAR = -5               ! k-space integration method, set partial occupancies f_nk for each orbital: -5 is Blöchl’s tetrahedron method
+LORBIT = 11               ! orbital resolved DOS and calculation of local magnetic moments
+
+!!!! Magnetism
+!ISPIN = 1                    ! 1 ~ non-magnetic, 2 ~ spin polarized, leave out when non-collinear
+!ISYM = 0                     ! no symmetry optimization of data structures, turn on when symmetry is lower in following run with rotated moments
+LNONCOLLINEAR=.TRUE.         ! non-collinear moments
+MAGMOM = -0.1667   -4.2174   -4.0507   -4.2174   -0.1667    4.0507    4.1366    4.1366   -0.0000    0.0000    0.0000    0.0000    0.0000    0.0000    0.0000      ! initial local moment direction for all atoms in POSCAR (with respect to SAXIS if SO is on)
+!MAGMOM = -3.9 3.9 3.9 0 0    ! collinear antiferromagnet with 5 atoms 3 of which are magnetic
+!SAXIS = 0 0 1                ! s_x s_y s_z (quantisation axis for spin)
+!LSORBIT = .TRUE.             ! spin-orbit coupling on/off (when true then LNONCOLLINEAR=.TRUE., when combined with ICHARG < 10 moments relax to easy axis)
+!!VOSKOWN = 1                  ! interpolation of correllation part of GGA - enhance magnetic moments, irrelevant for PBE
+
+!!!! Constrain local moments
+!I_CONSTRAINED_M = 1          ! non-collinear moments are encouraged to be along M_CONSTR (allows convergence in less than NELM=60 steps)
+!RWIGS = 5*1.0                ! wigner-seitz radius (au), needed for local moments, for m_constr must be given explicitly, otherwise in POTCAR (here and POTCAR do not have to agree) 
+!LAMBDA = 10                  ! 1/lambda is the strength of the constraint
+!M_CONSTR = -0.1667   -4.2174   -4.0507   -4.2174   -0.1667    4.0507    4.1366    4.1366   -0.0000    0.0000    0.0000    0.0000    0.0000    0.0000    0.0000    ! should be the same direction as MAGMOM          
+!!! slow linear mixing when increasing LAMBDA
+!AMIX = 0.1                   ! linear mixing parameter, default is 0.4
+!BMIX = 0.0001                ! reduce (turn off) cutoff wave vector for Kerker mixing scheme -> keep only linear mixing
+!AMIX_MAG = 0.2               ! linear mixing parameter, default is 0.4 in non-magnetic, recommended for magnetic without constraint is 1.6
+!AMIX MAG = 1.6               ! initial spin enhancement by factor of 4 compared to default 0.4 mixing (recommended by UG, has no effect on Mn3NiN)
+!BMIX_MAG = 0.0001            ! again turn off Kerker mixing scheme, default is 1.0
+
+!!!! Control ionic relaxation
+!ISIF = 7     !   which degrees of freedom should relax, 6 ~ cell shape and volume, 7 ~ volume
+!IBRION = 2   !   use CG algorithm to relax lattice
+!NSW = 15     !   max number of ionic steps (each ionic step amounts to at most NELM electronic self-cons steps)
+!POTIM = 0.1  !   reduce trial step of Conjugate Gradient
+!!! turn off ionic relaxation
+IBRION = -1
+NSW = 1
+
+!!!! Optimize parallelization (only effective when: mpiexec vasp)
+NPAR = 2        ! (total number of cores)/NCORE
+!NCORE = 4       ! number of cores working in parallel on one band (orbital)
+LPLANE = .TRUE. ! planewise data distribution in real space, reduces communication during FFT
+LSCALU = .FALSE.! serial version of LU decomposition in scaLAPACK (faster)
+NSIM = 4        ! subset of bands dealt with simultaneously during RMM-DIIS algorithm
+!IALGO = 48      ! RMM-DIIS electronic minimisation algorithm (38 - Davidson block iteration scheme is default, use only when atoms < 20)
+!LREAL = Auto    ! use with RMM-DIIS for larger systems
